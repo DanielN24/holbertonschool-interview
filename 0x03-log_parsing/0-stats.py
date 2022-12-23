@@ -1,28 +1,51 @@
 #!/usr/bin/python3
-"""reads stdin line by line and computes metrics:"""
-import sys
-Status = {'200': 0, '301': 0, '400': 0, '401': 0,
-          '403': 0, '404': 0, '405': 0, '500': 0}
-i = 0
-fileSize = 0
+""" format log stats parsed from stdin """
 
-for input in sys.stdin:
-    ListInput = input.split(' ')
-    if len(ListInput) > 2:
-        Thestatus = ListInput[-2]
-        f_size = int(ListInput[-1])
-        if Thestatus in Status:
-            Status[Thestatus] += 1
-    fileSize += f_size
-    i += 1
-    if i == 10:
-        print("File size: {:d}".format(fileSize))
-        for key, value in sorted(Status.items()):
-            if value != 0:
-                print("{}: {:d}".format(key, value))
-        i = 0
 
-print("File size: {:d}".format(fileSize))
-for key, value in sorted(Status.items()):
-    if value != 0:
-        print("{}: {:d}".format(key, value))
+def display_stats(status, size):
+    ''' function used to print formatted stats below '''
+
+    print("File size: {}".format(size))
+    for k, v in sorted(status.items()):
+        print("{}: {}".format(k, v))
+
+
+def isint(s):
+    ''' helper for try isint '''
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
+if __name__ == "__main__":
+    ''' expect line ending with: .. <status code> <file size>'''
+
+    import sys
+
+    status = {}
+    count = 0
+    size = 0
+
+    while True:
+        try:
+            line = sys.stdin.readline()
+            if not line:
+                display_stats(status, size)
+                break
+            count += 1
+            if isint(line.split()[-1]):
+                size += int(line.split()[-1])
+                code = line.split()[-2]
+                if isint(code):
+                    status[code] = status.get(code, 0) + 1
+
+                if count == 10:
+                    display_stats(status, size)
+                    count = 0
+
+        except KeyboardInterrupt:
+            if count >= 1:
+                display_stats(status, size)
+            break
