@@ -1,49 +1,58 @@
 #!/usr/bin/python3
-"""
-    N-queen problem
-    The next algo solve any N queen in any NxN
-    Being N > 3
-"""
+"""program that solves the N queens problem"""
+
 import sys
 
 
-def n_q(t_arr, arr, col, i, n):
-    """
-       n_q - Find all posibles solution for N-queen problem and return it
-             in a list
-       @t_arr: temporaly list to store the all points of a posible solution
-       @arr: store all the solution
-       @col: save a colum use for a queen
-       @i: the row of the chess table
-       @n: Number of queens
-    """
-    if (i > n):
-        arr.append(t_arr[:])
-        return arr
+def queens(n):
+    """program that solves the N queens problem"""
+    trail = []
+    sets = set()
+    for column in range(n):
+        trail.append([0, column])
+        sets.add(column)
 
-    for j in range(n + 1):
-        if i == 0 or ([i - 1, j - 1] not in t_arr and
-                      [i - 1, j + 1] not in t_arr and
-                      j not in col):
-            if i > 1:
-                dia = 0
-                for k in range(2, i + 1):
-                    if ([i - k, j - k] in t_arr) or ([i - k, j + k] in t_arr):
-                        dia = 1
-                        break
-                if dia:
-                    continue
-            t_arr.append([i, j])
-            col.append(j)
-            n_q(t_arr, arr, col, i + 1, n)
-            col.pop()
-            t_arr.pop()
+    road = []
+    while trail:
+        [row, column] = trail.pop(0)
+        while road and (row < road[0][0]):
+            road.pop(0)
+        if road and (row == road[0][0]):
+            road[0] = [row, column]
+        else:
+            road.insert(0, [row, column])
 
-    return arr
+        nextsrows = row + 1
+        death = set()
+        for (i, j) in road:
+            death.add(j)
+            distance = nextsrows - i
+            if j - distance >= 0:
+                death.add(j - distance)
+            if j + distance < n:
+                death.add(j + distance)
 
-if __name__ == "__main__":
+        safe = sets.difference(death)
+        if not safe:
+            if nextsrows == n:
+                temp = road.copy()
+                temp.reverse()
+                print(temp, flush=True)
+            road.pop(0)
+        else:
+            safe = list(safe)
+            safe.reverse()
+            for position in safe:
+                trail.insert(0, [nextsrows, position])
+
+
+if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage: nqueens N")
+        exit(1)
+
+    if int(sys.argv[1]) < 4:
+        print("N must be at least 4")
         exit(1)
 
     try:
@@ -51,15 +60,4 @@ if __name__ == "__main__":
     except:
         print("N must be a number")
         exit(1)
-
-    if not isinstance(n, int):
-        print("N must be a number")
-        exit(1)
-
-    elif n < 4:
-        print("N must be at least 4")
-        exit(1)
-
-    n_q_arr = n_q([], [], [], 0, n - 1)
-    for i in n_q_arr:
-        print(i)
+    queens(n)
